@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Семеен Бюджет Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        h1 { font-size: 32px; color: #1f2937; }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-success:hover { background: #059669; }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-icon {
+            background: #f3f4f6;
+            padding: 8px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .btn-icon:hover { background: #e5e7eb; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+        .stat-card {
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .stat-card.red { background: #fef2f2; }
+        .stat-card.blue { background: #eff6ff; }
+        .stat-card.green { background: #f0fdf4; }
+        .stat-label {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .stat-value.red { color: #dc2626; }
+        .stat-value.blue { color: #2563eb; }
+        .stat-value.green { color: #16a34a; }
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        textarea { font-family: monospace; resize: vertical; }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .modal.active { display: flex; align-items: center; justify-content: center; }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .log {
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log.success { background: #d1fae5; color: #065f46; }
+        .log.error { background: #fee2e2; color: #991b1b; }
+        .log.warning { background: #fef3c7; color: #92400e; }
+        .log.info { background: #dbeafe; color: #1e40af; }
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .paste-area {
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            padding: 24px;
+            background: #eff6ff;
+        }
+        #chartCanvas { max-height: 300px; }
+        .keyword-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #e5e7eb;
+            border-radius: 16px;
+            margin: 4px;
+            font-size: 12px;
+        }
+        .flex { display: flex; gap: 8px; align-items: center; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .mb-4 { margin-bottom: 16px; }
+        .mt-4 { margin-top: 16px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="card">
+            <div class="header">
+                <h1>💰 Семеен Бюджет</h1>
+                <div class="flex">
+                    <button class="btn-icon" onclick="toggleLogs()">📋</button>
+                    <button class="btn-icon" onclick="toggleSettings()">⚙️</button>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" style="width: 100%; margin-bottom: 16px;" onclick="toggleUpload()">
+                ➕ Добави транзакции
+            </button>
+
+            <div class="grid">
+                <div>
+                    <label class="stat-label">Месец</label>
+                    <select id="monthFilter" onchange="filterData()">
+                        <option value="all">Всички месеци</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="stat-label">Година</label>
+                    <select id="yearFilter" onchange="filterData()">
+                        <option value="all">Всички години</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="stat-label">Човек</label>
+                    <select id="personFilter" onchange="filterData()">
+                        <option value="all">Двамата</option>
+                        <option value="Мирослав">Мирослав</option>
+                        <option value="Валерия">Валерия</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid">
+            <div class="stat-card red">
+                <div class="stat-label">Общо разходи</div>
+                <div class="stat-value red" id="totalExpenses">0.00 лв</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-label">Брой транзакции</div>
+                <div class="stat-value blue" id="totalCount">0</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-label">Средно на транзакция</div>
+                <div class="stat-value green" id="avgExpense">0.00 лв</div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="card">
+            <h2 style="margin-bottom: 16px;">📊 Разпределение по категории</h2>
+            <canvas id="chartCanvas"></canvas>
+        </div>
+
+        <!-- Categories -->
+        <div class="card">
+            <h2 style="margin-bottom: 16px;">Детайли по категории</h2>
+            <div id="categoriesList"></div>
+        </div>
+
+        <!-- Transactions -->
+        <div class="card">
+            <h2 style="margin-bottom: 16px;">📝 Всички транзакции</h2>
+            <div id="transactionsList" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal" id="uploadModal">
+        <div class="modal-content">
+            <div class="flex-between mb-4">
+                <h2>📤 Добави данни</h2>
+                <button class="btn-icon" onclick="toggleUpload()">✖️</button>
+            </div>
+            
+            <label class="stat-label">За кого са тези разходи?</label>
+            <select id="uploadPerson">
+                <option value="Мирослав">Мирослав</option>
+                <option value="Валерия">Валерия</option>
+            </select>
+
+            <div class="upload-area">
+                <h3 style="margin-bottom: 8px;">💻 От компютър - Качи файл:</h3>
+                <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileUpload(event)">
+            </div>
+
+            <div class="paste-area">
+                <h3 style="margin-bottom: 8px;">📱 От телефон - Copy/Paste:</h3>
+                <ol style="text-align: left; margin-bottom: 12px; padding-left: 20px; font-size: 14px;">
+                    <li>Отвори Revolut Excel в Google Sheets</li>
+                    <li>Селектирай ВСИЧКИ данни</li>
+                    <li>Copy (Ctrl+C)</li>
+                    <li>Paste тук долу:</li>
+                </ol>
+                <textarea id="pasteData" rows="8" placeholder="Постави данните от Excel тук..."></textarea>
+                <button class="btn btn-success" style="width: 100%;" onclick="handlePasteUpload()">
+                    ✅ Добави транзакциите
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="flex-between mb-4">
+                <h2>⚙️ Настройки</h2>
+                <button class="btn-icon" onclick="toggleSettings()">✖️</button>
+            </div>
+            
+            <div style="background: #eff6ff; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                <label class="stat-label">Добави нова категория:</label>
+                <div class="flex">
+                    <input type="text" id="newCategoryName" placeholder="Име на категория">
+                    <button class="btn btn-primary" onclick="addCategory()">➕</button>
+                </div>
+            </div>
+
+            <div id="categoriesSettings"></div>
+        </div>
+    </div>
+
+    <!-- Logs Modal -->
+    <div class="modal" id="logsModal">
+        <div class="modal-content">
+            <div class="flex-between mb-4">
+                <h2>📋 Системни логове</h2>
+                <div class="flex">
+                    <button class="btn btn-danger" style="padding: 8px 16px; font-size: 14px;" onclick="clearLogs()">Изчисти</button>
+                    <button class="btn-icon" onclick="toggleLogs()">✖️</button>
+                </div>
+            </div>
+            <div id="logsList" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let transactions = [];
+        let categories = {
+            'Пазар': { keywords: ['BILLA', 'Kaufland', 'Lidl', 'Fantastico'], color: '#10b981', icon: '🛒' },
+            'Гориво': { keywords: ['LUKOIL', 'OMV', 'Shell', 'Petrol'], color: '#f59e0b', icon: '⛽' },
+            'Заведения': { keywords: ['Subway', 'Supa Bar', 'Leksi', 'Markita'], color: '#8b5cf6', icon: '🍽️' },
+            'Аптека': { keywords: ['SOpharmacy', 'Pharmacy', 'Аптека'], color: '#ef4444', icon: '💊' },
+            'Училище': { keywords: ['Uchilishta', 'Maksimum', 'Училище'], color: '#3b82f6', icon: '🏫' },
+            'Магазини': { keywords: ['Narkoop', 'RPK', 'Magazine'], color: '#ec4899', icon: '🛍️' },
+            'Абонаменти': { keywords: ['Claude', 'Netflix', 'Spotify', 'Subscription'], color: '#6366f1', icon: '💻' },
+            'Тренировки': { keywords: ['Fitness', 'Gym', 'Sport', 'Тренировка'], color: '#14b8a6', icon: '🏋️' },
+            'Други': { keywords: [], color: '#64748b', icon: '🎯' }
+        };
+        let logs = [];
+        let chart = null;
+
+        const monthNames = ['Януари', 'Февруари', 'Март', 'Април', 'Май', 'Юни', 'Юли', 'Август', 'Септември', 'Октомври', 'Ноември', 'Декември'];
+
+        // Initialize
+        window.onload = () => {
+            loadData();
+            renderUI();
+        };
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString('bg-BG');
+            logs.push({ timestamp, message, type });
+            console.log(`[${timestamp}] ${message}`);
+            updateLogsUI();
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('budget-data');
+            if (saved) {
+                const data = JSON.parse(saved);
+                transactions = data.transactions || [];
+                categories = data.categories || categories;
+                addLog(`Заредени ${transactions.length} транзакции`, 'success');
+            } else {
+                addLog('Започвам с празна база данни');
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('budget-data', JSON.stringify({ transactions, categories }));
+            addLog('Данни запазени', 'success');
+        }
+
+        function categorizeTransaction(description) {
+            const desc = description.toUpperCase();
+            for (const [name, data] of Object.entries(categories)) {
+                for (const keyword of data.keywords) {
+                    if (desc.includes(keyword.toUpperCase())) {
+                        return name;
+                    }
+                }
+            }
+            return 'Други';
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            addLog(`Зареждане на ${file.name}...`);
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+                    const person = document.getElementById('uploadPerson').value;
+                    const newTransactions = jsonData
+                        .filter(row => row['Сума'] && parseFloat(row['Сума']) < 0)
+                        .map((row, index) => {
+                            const description = row['Описание'] || '';
+                            const amount = Math.abs(parseFloat(row['Сума']) || 0);
+                            const dateStr = row['Начална дата'] || row['Дата на завършване'] || '';
+                            
+                            let date = new Date();
+                            if (dateStr) {
+                                const parts = dateStr.split(' ')[0].split('-');
+                                if (parts.length === 3) {
+                                    date = new Date(parts[0], parts[1] - 1, parts[2]);
+                                }
+                            }
+
+                            return {
+                                id: `${Date.now()}-${index}-${Math.random()}`,
+                                date: date.toISOString(),
+                                description,
+                                amount,
+                                category: categorizeTransaction(description),
+                                person,
+                                manual: false
+                            };
+                        });
+
+                    transactions.push(...newTransactions);
+                    saveData();
+                    renderUI();
+                    
+                    addLog(`✅ Качени ${newTransactions.length} транзакции`, 'success');
+                    alert(`✅ Качени ${newTransactions.length} транзакции!`);
+                    toggleUpload();
+                } catch (error) {
+                    addLog(`❌ ${error.message}`, 'error');
+                    alert(`❌ Грешка: ${error.message}`);
+                }
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
+        function handlePasteUpload() {
+            const data = document.getElementById('pasteData').value;
+            const person = document.getElementById('uploadPerson').value;
+            
+            if (!data.trim()) {
+                alert('⚠️ Постави данни в полето!');
+                return;
+            }
+
+            addLog('=== ЗАПОЧВАМ ОБРАБОТКА ===');
+            
+            try {
+                const lines = data.trim().split('\n');
+                addLog(`Намерени ${lines.length} реда`);
+                const newTransactions = [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const parts = line.split('\t');
+                    if (parts.length < 6) continue;
+                    
+                    const type = parts[0] || '';
+                    const description = parts[4] || '';
+                    const amountStr = parts[5] || '';
+                    
+                    if (type.includes('Допълване') || type.includes('Превод')) continue;
+                    
+                    const amount = Math.abs(parseFloat(amountStr.replace(',', '.')) || 0);
+                    if (amount === 0) continue;
+                    
+                    const dateStr = parts[2] || '';
+                    let date = new Date();
+                    
+                    if (dateStr) {
+                        const dateParts = dateStr.split(' ')[0].split('-');
+                        if (dateParts.length === 3) {
+                            date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+                        }
+                    }
+                    
+                    newTransactions.push({
+                        id: `${Date.now()}-${i}-${Math.random()}`,
+                        date: date.toISOString(),
+                        description,
+                        amount,
+                        category: categorizeTransaction(description),
+                        person,
+                        manual: false
+                    });
+                    
+                    addLog(`✓ ${description}: ${amount} лв`, 'success');
+                }
+
+                if (newTransactions.length === 0) {
+                    addLog('❌ Няма валидни транзакции', 'error');
+                    alert('⚠️ Не намерих транзакции. Провери формата.');
+                    return;
+                }
+
+                transactions.push(...newTransactions);
+                saveData();
+                renderUI();
+                
+                addLog(`✅ УСПЕХ! Добавени ${newTransactions.length} транзакции`, 'success');
+                alert(`✅ Добавени ${newTransactions.length} транзакции за ${person}!`);
+                document.getElementById('pasteData').value = '';
+                toggleUpload();
+            } catch (error) {
+                addLog(`❌ ГРЕШКА: ${error.message}`, 'error');
+                alert(`❌ Грешка: ${error.message}`);
+            }
+        }
+
+        function getFilteredTransactions() {
+            const month = document.getElementById('monthFilter').value;
+            const year = document.getElementById('yearFilter').value;
+            const person = document.getElementById('personFilter').value;
+
+            return transactions.filter(tx => {
+                const txDate = new Date(tx.date);
+                const monthMatch = month === 'all' || txDate.getMonth() === parseInt(month);
+                const yearMatch = year === 'all' || txDate.getFullYear() === parseInt(year);
+                const personMatch = person === 'all' || tx.person === person;
+                return monthMatch && yearMatch && personMatch;
+            });
+        }
+
+        function getCategoryData() {
+            const filtered = getFilteredTransactions();
+            const totals = {};
+            
+            filtered.forEach(tx => {
+                totals[tx.category] = (totals[tx.category] || 0) + tx.amount;
+            });
+
+            return Object.entries(totals)
+                .map(([name, value]) => ({
+                    name,
+                    value: parseFloat(value.toFixed(2)),
+                    color: categories[name]?.color || '#64748b',
+                    icon: categories[name]?.icon || '📌'
+                }))
+                .sort((a, b) => b.value - a.value);
+        }
+
+        function renderUI() {
+            const filtered = getFilteredTransactions();
+            const total = filtered.reduce((sum, tx) => sum + tx.amount, 0);
+            const avg = filtered.length > 0 ? total / filtered.length : 0;
+
+            document.getElementById('totalExpenses').textContent = `${total.toFixed(2)} лв`;
+            document.getElementById('totalCount').textContent = filtered.length;
+            document.getElementById('avgExpense').textContent = `${avg.toFixed(2)} лв`;
+
+            renderChart();
+            renderCategories();
+            renderTransactions();
+            updateFilters();
+        }
+
+        function renderChart() {
+            const categoryData = getCategoryData();
+            const ctx = document.getElementById('chartCanvas').getContext('2d');
+            
+            if (chart) chart.destroy();
+
+            if (categoryData.length === 0) {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                return;
+            }
+
+            chart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: categoryData.map(c => `${c.icon} ${c.name}`),
+                    datasets: [{
+                        data: categoryData.map(c => c.value),
+                        backgroundColor: categoryData.map(c => c.color)
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.label}: ${context.parsed.toFixed(2)} лв`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderCategories() {
+            const categoryData = getCategoryData();
+            const total = categoryData.reduce((sum, c) => sum + c.value, 0);
+            
+            const html = categoryData.map(cat => `
+                <div class="category-item">
+                    <div class="flex">
+                        <span style="font-size: 24px;">${cat.icon}</span>
+                        <span style="font-weight: 600;">${cat.name}</span>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: bold; font-size: 18px;">${cat.value.toFixed(2)} лв</div>
+                        <div style="font-size: 12px; color: #6b7280;">${total > 0 ? ((cat.value / total) * 100).toFixed(1) : 0}%</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('categoriesList').innerHTML = html || '<p style="text-align: center; color: #6b7280;">Няма данни</p>';
+        }
+
+        function renderTransactions() {
+            const filtered = getFilteredTransactions().sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            const html = filtered.map(tx => `
+                <div class="transaction-item">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600;">${tx.description}</div>
+                        <div style="font-size: 12px; color: #6b7280;">
+                            ${new Date(tx.date).toLocaleDateString('bg-BG')} • ${tx.person}
+                        </div>
+                    </div>
+                    <div class="flex">
+                        <select onchange="updateCategory('${tx.id}', this.value)" style="width: auto; margin: 0; padding: 8px; font-size: 12px;">
+                            ${Object.entries(categories).map(([name, data]) => 
+                                `<option value="${name}" ${tx.category === name ? 'selected' : ''}>${data.icon} ${name}</option>`
+                            ).join('')}
+                        </select>
+                        <div style="font-weight: bold; color: #dc2626; min-width: 80px; text-align: right;">
+                            ${tx.amount.toFixed(2)} лв
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('transactionsList').innerHTML = html || '<p style="text-align: center; color: #6b7280;">Няма транзакции</p>';
+        }
+
+        function updateCategory(id, newCategory) {
+            const tx = transactions.find(t => t.id === id);
+            if (tx) {
+                tx.category = newCategory;
+                tx.manual = true;
+                saveData();
+                renderUI();
+                addLog(`Категория променена на "${newCategory}"`, 'success');
+            }
+        }
+
+        function updateFilters() {
+            const months = new Set();
+            const years = new Set();
+            
+            transactions.forEach(tx => {
+                const date = new Date(tx.date);
+                months.add(date.getMonth());
+                years.add(date.getFullYear());
+            });
+
+            const monthFilter = document.getElementById('monthFilter');
+            const yearFilter = document.getElementById('yearFilter');
+            
+            const currentMonth = monthFilter.value;
+            const currentYear = yearFilter.value;
+
+            monthFilter.innerHTML = '<option value="all">Всички месеци</option>' +
+                Array.from(months).sort((a, b) => a - b)
+                    .map(m => `<option value="${m}">${monthNames[m]}</option>`).join('');
+            
+            yearFilter.innerHTML = '<option value="all">Всички години</option>' +
+                Array.from(years).sort((a, b) => b - a)
+                    .map(y => `<option value="${y}">${y}</option>`).join('');
+
+            monthFilter.value = currentMonth;
+            yearFilter.value = currentYear;
+        }
+
+        function filterData() {
+            renderUI();
+        }
+
+        function addCategory() {
+            const name = document.getElementById('newCategoryName').value.trim();
+            if (!name) return;
+            
+            if (categories[name]) {
+                alert('Тази категория вече съществува!');
+                return;
+            }
+
+            categories[name] = { keywords: [], color: '#64748b', icon: '📌' };
+            saveData();
+            renderUI();
+            renderSettingsUI();
+            document.getElementById('newCategoryName').value = '';
+            addLog(`Добавена категория "${name}"`, 'success');
+        }
+
+        function renderSettingsUI() {
+            const html = Object.entries(categories).map(([name, data]) => `
+                <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                    <div class="flex-between mb-4">
+                        <div class="flex">
+                            <span style="font-size: 24px;">${data.icon}</span>
+                            <span style="font-weight: 600;">${name}</span>
+                        </div>
+                        ${name !== 'Други' ? `<button class="btn btn-danger" style="padding: 8px 16px; font-size: 14px;" onclick="deleteCategory('${name}')">🗑️</button>` : ''}
+                    </div>
+                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Ключови думи:</div>
+                    <div style="margin-bottom: 12px;">
+                        ${data.keywords.map(kw => `
+                            <span class="keyword-tag">
+                                ${kw} 
+                                <button onclick="removeKeyword('${name}', '${kw}')" style="border: none; background: none; color: #dc2626; cursor: pointer; margin-left: 4px;">✖</button>
+                            </span>
+                        `).join('')}
+                    </div>
+                    <div class="flex">
+                        <input type="text" id="keyword-${name}" placeholder="Нова ключова дума" style="margin: 0;">
+                        <button class="btn btn-success" style="padding: 8px 16px;" onclick="addKeyword('${name}')">➕</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('categoriesSettings').innerHTML = html;
+        }
+
+        function deleteCategory(name) {
+            if (!confirm(`Сигурен ли си, че искаш да изтриеш "${name}"?`)) return;
+            
+            transactions.forEach(tx => {
+                if (tx.category === name) tx.category = 'Други';
+            });
+            
+            delete categories[name];
+            saveData();
+            renderUI();
+            renderSettingsUI();
+            addLog(`Изтрита категория "${name}"`, 'warning');
+        }
+
+        function addKeyword(categoryName) {
+            const input = document.getElementById(`keyword-${categoryName}`);
+            const keyword = input.value.trim();
+            
+            if (!keyword) return;
+            
+            if (!categories[categoryName].keywords.includes(keyword)) {
+                categories[categoryName].keywords.push(keyword);
+                saveData();
+                renderSettingsUI();
+                input.value = '';
+                addLog(`Добавена ключова дума "${keyword}" в "${categoryName}"`, 'success');
+            }
+        }
+
+        function removeKeyword(categoryName, keyword) {
+            categories[categoryName].keywords = categories[categoryName].keywords.filter(k => k !== keyword);
+            saveData();
+            renderSettingsUI();
+            addLog(`Премахната ключова дума "${keyword}"`, 'warning');
+        }
+
+        function toggleUpload() {
+            document.getElementById('uploadModal').classList.toggle('active');
+        }
+
+        function toggleSettings() {
+            const modal = document.getElementById('settingsModal');
+            const isActive = modal.classList.toggle('active');
+            if (isActive) renderSettingsUI();
+        }
+
+        function toggleLogs() {
+            document.getElementById('logsModal').classList.toggle('active');
+        }
+
+        function clearLogs() {
+            logs = [];
+            updateLogsUI();
+        }
+
+        function updateLogsUI() {
+            const html = logs.length === 0 
+                ? '<p style="text-align: center; color: #6b7280;">Няма логове</p>'
+                : logs.map(log => `
+                    <div class="log ${log.type}">
+                        [${log.timestamp}] ${log.message}
+                    </div>
+                `).join('');
+            
+            document.getElementById('logsList').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
