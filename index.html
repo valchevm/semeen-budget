@@ -3,84 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💰 Семеен Бюджет Tracker</title>
+    <meta name="theme-color" content="#1e3a8a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>💰 Семеен Бюджет</title>
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoi0KHQtdC80LXQtdC9INCR0Y7QtNC20LXRgiIsInNob3J0X25hbWUiOiLQkdGO0LTQttC10YIiLCJzdGFydF91cmwiOiIvIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzFlM2E4YSIsInRoZW1lX2NvbG9yIjoiIzFlM2E4YSIsImljb25zIjpbeyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSFpwWlhkQ2IzZzlJakFnTUNBMU1USWdOVEV5SWo0OGNtVmpkQ0IzYVdSMGFEMGlOVEV5SWlCb1pXbG5hSFE5SWpVeE1pSWdabWxzYkQwaUl6RmxNMkU0WVNJL1BIUmxlSFFnZUQwaU1qVTJJaUI1UFNJME1EQWlJR1p2Ym5RdGMybDZaVDBpT0RBaUlIUmxlSFF0WVc1amFHOXlQU0p0YVdSa2JHVWlJR1pwYkd3OUlpTm1abVppWm1ZaVBqazdQQzkwWlhoMFBqd3ZjM1puUGc9PSIsInNpemVzIjoiNTEyeDUxMiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn1dfQ==">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #f3f4f6;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto;
         }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 16px;
         }
-        h1 { font-size: 32px; color: #1f2937; }
+        
+        h1 { 
+            font-size: 36px; 
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+        
         .btn {
-            padding: 12px 24px;
+            padding: 14px 28px;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            font-family: 'Inter', sans-serif;
         }
-        .btn-primary { background: #3b82f6; color: white; }
-        .btn-primary:hover { background: #2563eb; }
-        .btn-success { background: #10b981; color: white; }
-        .btn-success:hover { background: #059669; }
-        .btn-danger { background: #ef4444; color: white; }
-        .btn-danger:hover { background: #dc2626; }
-        .btn-warning { background: #f59e0b; color: white; }
-        .btn-warning:hover { background: #d97706; }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-primary { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-success { 
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+        
+        .btn-danger { 
+            background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+            color: white;
+        }
+        
         .btn-icon {
-            background: #f3f4f6;
-            padding: 8px;
-            border-radius: 8px;
-            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
             cursor: pointer;
             font-size: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
-        .btn-icon:hover { background: #e5e7eb; }
+        
+        .btn-icon:hover { 
+            background: white;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
         }
-        .stat-card { padding: 20px; border-radius: 8px; }
-        .stat-card.red { background: #fef2f2; }
-        .stat-card.blue { background: #eff6ff; }
-        .stat-card.green { background: #f0fdf4; }
-        .stat-label { font-size: 14px; color: #6b7280; margin-bottom: 8px; }
-        .stat-value { font-size: 28px; font-weight: bold; }
-        .stat-value.red { color: #dc2626; }
-        .stat-value.blue { color: #2563eb; }
-        .stat-value.green { color: #16a34a; }
+        
+        .stat-card { 
+            padding: 28px;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.1;
+            background: radial-gradient(circle at top right, currentColor 0%, transparent 70%);
+        }
+        
+        .stat-card.red { 
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+        }
+        
+        .stat-card.blue { 
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .stat-card.green { 
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+        
+        .stat-label { 
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-value { 
+            font-size: 32px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
         select, input, textarea {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 14px;
+            padding: 14px 16px;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            font-size: 15px;
             margin-bottom: 12px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            background: white;
         }
-        textarea { font-family: monospace; resize: vertical; }
+        
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        textarea { 
+            font-family: 'Monaco', 'Courier New', monospace;
+            resize: vertical;
+            min-height: 120px;
+        }
+        
         .modal {
             display: none;
             position: fixed;
@@ -88,117 +213,287 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
             z-index: 1000;
+            animation: fadeIn 0.3s ease;
         }
-        .modal.active { display: flex; align-items: center; justify-content: center; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal.active { 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
         .modal-content {
             background: white;
-            border-radius: 12px;
-            padding: 24px;
+            border-radius: 20px;
+            padding: 32px;
             max-width: 600px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
         }
+        
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .category-item, .transaction-item {
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .category-item:hover, .transaction-item:hover { 
+            background: white;
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
         .category-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px;
-            background: #f9fafb;
-            border-radius: 8px;
-            margin-bottom: 8px;
         }
+        
         .transaction-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px;
-            background: #f9fafb;
-            border-radius: 8px;
-            margin-bottom: 8px;
             gap: 12px;
         }
-        .transaction-item:hover { background: #f3f4f6; }
+        
         .log {
-            padding: 8px;
-            border-radius: 4px;
-            margin-bottom: 4px;
-            font-family: monospace;
-            font-size: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            border-left: 4px solid;
         }
-        .log.success { background: #d1fae5; color: #065f46; }
-        .log.error { background: #fee2e2; color: #991b1b; }
-        .log.warning { background: #fef3c7; color: #92400e; }
-        .log.info { background: #dbeafe; color: #1e40af; }
+        
+        .log.success { 
+            background: #d1fae5;
+            color: #065f46;
+            border-color: #10b981;
+        }
+        
+        .log.error { 
+            background: #fee2e2;
+            color: #991b1b;
+            border-color: #ef4444;
+        }
+        
+        .log.warning { 
+            background: #fef3c7;
+            color: #92400e;
+            border-color: #f59e0b;
+        }
+        
+        .log.info { 
+            background: #dbeafe;
+            color: #1e40af;
+            border-color: #3b82f6;
+        }
+        
         .upload-area {
-            border: 2px dashed #d1d5db;
-            border-radius: 8px;
-            padding: 24px;
+            border: 3px dashed rgba(102, 126, 234, 0.3);
+            border-radius: 16px;
+            padding: 32px;
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            transition: all 0.3s ease;
         }
+        
+        .upload-area:hover {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+        
         .paste-area {
-            border: 2px solid #3b82f6;
-            border-radius: 8px;
-            padding: 24px;
-            background: #eff6ff;
+            border: 2px solid #667eea;
+            border-radius: 16px;
+            padding: 28px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
         }
-        #chartCanvas { max-height: 300px; }
+        
+        #chartCanvas { 
+            max-height: 320px;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.05));
+        }
+        
         .keyword-tag {
             display: inline-block;
-            padding: 4px 12px;
-            background: #e5e7eb;
-            border-radius: 16px;
+            padding: 6px 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
             margin: 4px;
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: transform 0.2s ease;
         }
-        .flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        
+        .keyword-tag:hover {
+            transform: scale(1.05);
+        }
+        
+        .flex { 
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .flex-between { 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
         .mb-4 { margin-bottom: 16px; }
+        
         .delete-btn {
-            background: #ef4444;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
             color: white;
             border: none;
-            padding: 6px 10px;
-            border-radius: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
+            transition: all 0.3s ease;
         }
-        .delete-btn:hover { background: #dc2626; }
+        
+        .delete-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        }
+        
         .sync-status {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 12px 20px;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            font-size: 14px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            font-size: 15px;
             font-weight: 600;
             z-index: 999;
+            border: 2px solid;
+            animation: slideIn 0.3s ease;
         }
-        .sync-status.syncing { color: #3b82f6; }
-        .sync-status.synced { color: #10b981; }
-        .sync-status.error { color: #ef4444; }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .sync-status.syncing { 
+            color: #3b82f6;
+            border-color: #3b82f6;
+        }
+        
+        .sync-status.synced { 
+            color: #10b981;
+            border-color: #10b981;
+        }
+        
+        .sync-status.error { 
+            color: #ef4444;
+            border-color: #ef4444;
+        }
+        
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        .spinning { animation: spin 1s linear infinite; display: inline-block; }
+        
+        .spinning { 
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        
         .action-btns {
             display: flex;
-            gap: 8px;
+            gap: 12px;
             flex-wrap: wrap;
         }
+        
+        .install-prompt {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+        
         @media (max-width: 768px) {
-            .btn { padding: 10px 16px; font-size: 14px; }
-            h1 { font-size: 24px; }
+            body { padding: 12px; }
+            .btn { padding: 12px 20px; font-size: 14px; }
+            h1 { font-size: 28px; }
+            h2 { font-size: 20px; }
+            .card { padding: 20px; }
+            .stat-value { font-size: 28px; }
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #6a4190 100%);
         }
     </style>
 </head>
 <body>
+    <div id="installPrompt" class="install-prompt">
+        <div>
+            <div style="font-weight: 700; font-size: 18px; margin-bottom: 4px;">📱 Свали приложението</div>
+            <div style="font-size: 14px; opacity: 0.9;">Добави на Home Screen за по-бърз достъп</div>
+        </div>
+        <button class="btn btn-success" onclick="installApp()" style="margin: 0;">Свали</button>
+    </div>
+
     <div id="syncStatus" class="sync-status" style="display: none;">
         <span id="syncIcon">🔄</span>
         <span id="syncText">Синхронизация...</span>
@@ -220,25 +515,25 @@
                     ➕ Добави транзакции
                 </button>
                 <button class="btn btn-danger" onclick="confirmReset()">
-                    🗑️ Reset всичко
+                    🗑️ Reset
                 </button>
             </div>
 
-            <div class="grid" style="margin-top: 16px;">
+            <div class="grid" style="margin-top: 20px;">
                 <div>
-                    <label class="stat-label">Месец</label>
+                    <label class="stat-label" style="color: #64748b;">Месец</label>
                     <select id="monthFilter" onchange="filterData()">
                         <option value="all">Всички месеци</option>
                     </select>
                 </div>
                 <div>
-                    <label class="stat-label">Година</label>
+                    <label class="stat-label" style="color: #64748b;">Година</label>
                     <select id="yearFilter" onchange="filterData()">
                         <option value="all">Всички години</option>
                     </select>
                 </div>
                 <div>
-                    <label class="stat-label">Човек</label>
+                    <label class="stat-label" style="color: #64748b;">Човек</label>
                     <select id="personFilter" onchange="filterData()">
                         <option value="all">Двамата</option>
                         <option value="Мирослав">Мирослав</option>
@@ -251,56 +546,56 @@
         <div class="grid">
             <div class="stat-card red">
                 <div class="stat-label">Общо разходи</div>
-                <div class="stat-value red" id="totalExpenses">0.00 лв</div>
+                <div class="stat-value" id="totalExpenses">0.00 лв</div>
             </div>
             <div class="stat-card blue">
                 <div class="stat-label">Брой транзакции</div>
-                <div class="stat-value blue" id="totalCount">0</div>
+                <div class="stat-value" id="totalCount">0</div>
             </div>
             <div class="stat-card green">
-                <div class="stat-label">Средно на транзакция</div>
-                <div class="stat-value green" id="avgExpense">0.00 лв</div>
+                <div class="stat-label">Средно</div>
+                <div class="stat-value" id="avgExpense">0.00 лв</div>
             </div>
         </div>
 
         <div class="card">
-            <h2 style="margin-bottom: 16px;">📊 Разпределение по категории</h2>
+            <h2>📊 Разпределение по категории</h2>
             <canvas id="chartCanvas"></canvas>
         </div>
 
         <div class="card">
-            <h2 style="margin-bottom: 16px;">Детайли по категории</h2>
+            <h2>Детайли по категории</h2>
             <div id="categoriesList"></div>
         </div>
 
         <div class="card">
-            <h2 style="margin-bottom: 16px;">📝 Всички транзакции</h2>
-            <div id="transactionsList" style="max-height: 400px; overflow-y: auto;"></div>
+            <h2>📝 Всички транзакции</h2>
+            <div id="transactionsList" style="max-height: 500px; overflow-y: auto;"></div>
         </div>
     </div>
 
-    <!-- Upload Modal -->
+    <!-- Modals remain the same structure but inherit new styles -->
     <div class="modal" id="uploadModal">
         <div class="modal-content">
             <div class="flex-between mb-4">
-                <h2>📤 Добави данни</h2>
+                <h2 style="margin: 0;">📤 Добави данни</h2>
                 <button class="btn-icon" onclick="toggleUpload()">✖️</button>
             </div>
             
-            <label class="stat-label">За кого са тези разходи?</label>
+            <label class="stat-label" style="color: #64748b;">За кого са тези разходи?</label>
             <select id="uploadPerson">
                 <option value="Мирослав">Мирослав</option>
                 <option value="Валерия">Валерия</option>
             </select>
 
             <div class="upload-area">
-                <h3 style="margin-bottom: 8px;">💻 От компютър - Качи файл:</h3>
+                <h3 style="margin-bottom: 12px; color: #667eea;">💻 От компютър - Качи файл:</h3>
                 <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileUpload(event)">
             </div>
 
             <div class="paste-area">
-                <h3 style="margin-bottom: 8px;">📱 От телефон - Copy/Paste:</h3>
-                <ol style="text-align: left; margin-bottom: 12px; padding-left: 20px; font-size: 14px;">
+                <h3 style="margin-bottom: 12px; color: #667eea;">📱 От телефон - Copy/Paste:</h3>
+                <ol style="text-align: left; margin-bottom: 16px; padding-left: 24px; font-size: 14px; color: #64748b;">
                     <li>Отвори Revolut Excel в Google Sheets</li>
                     <li>Селектирай ВСИЧКИ данни</li>
                     <li>Copy (Ctrl+C)</li>
@@ -314,16 +609,15 @@
         </div>
     </div>
 
-    <!-- Settings Modal -->
     <div class="modal" id="settingsModal">
         <div class="modal-content">
             <div class="flex-between mb-4">
-                <h2>⚙️ Настройки</h2>
+                <h2 style="margin: 0;">⚙️ Настройки</h2>
                 <button class="btn-icon" onclick="toggleSettings()">✖️</button>
             </div>
             
-            <div style="background: #eff6ff; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
-                <label class="stat-label">Добави нова категория:</label>
+            <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <label class="stat-label" style="color: #667eea;">Добави нова категория:</label>
                 <div class="flex">
                     <input type="text" id="newCategoryName" placeholder="Име на категория" style="margin: 0;">
                     <button class="btn btn-primary" onclick="addCategory()">➕</button>
@@ -334,13 +628,12 @@
         </div>
     </div>
 
-    <!-- Logs Modal -->
     <div class="modal" id="logsModal">
         <div class="modal-content">
             <div class="flex-between mb-4">
-                <h2>📋 Системни логове</h2>
+                <h2 style="margin: 0;">📋 Системни логове</h2>
                 <div class="flex">
-                    <button class="btn btn-danger" style="padding: 8px 16px; font-size: 14px;" onclick="clearLogs()">Изчисти</button>
+                    <button class="btn btn-danger" style="padding: 10px 18px; font-size: 14px;" onclick="clearLogs()">Изчисти</button>
                     <button class="btn-icon" onclick="toggleLogs()">✖️</button>
                 </div>
             </div>
@@ -349,6 +642,28 @@
     </div>
 
     <script>
+        // PWA Install
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installPrompt').style.display = 'flex';
+        });
+        
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('App installed');
+                    }
+                    deferredPrompt = null;
+                    document.getElementById('installPrompt').style.display = 'none';
+                });
+            }
+        }
+
         const firebaseConfig = {
             apiKey: "AIzaSyB8XDx_eeo8cS3-AbR_KSstY97w5mZxdJA",
             authDomain: "semeen-budget.firebaseapp.com",
@@ -362,10 +677,8 @@
         try {
             firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
-            console.log('✅ Firebase инициализиран успешно');
         } catch (error) {
-            console.error('❌ Firebase грешка:', error);
-            alert('⚠️ Грешка при свързване с Firebase: ' + error.message);
+            console.error('Firebase error:', error);
         }
 
         let transactions = [];
@@ -375,10 +688,10 @@
             'Заведения': { keywords: ['Subway', 'Supa Bar', 'Leksi', 'Markita', 'McDonald', 'Costa'], color: '#8b5cf6', icon: '🍽️' },
             'Аптека': { keywords: ['SOpharmacy', 'Pharmacy', 'Аптека', 'Apteka', 'Zdrave'], color: '#ef4444', icon: '💊' },
             'Училище': { keywords: ['Uchilishta', 'Maksimum', 'Училище'], color: '#3b82f6', icon: '🏫' },
-            'Магазини': { keywords: ['Narkoop', 'RPK', 'Magazine', 'Phoenix', 'BMS', 'Kris'], color: '#ec4899', icon: '🛍️' },
-            'Абонаменти': { keywords: ['Claude', 'Netflix', 'Spotify', 'Subscription', 'Julius'], color: '#6366f1', icon: '💻' },
-            'Тренировки': { keywords: ['Fitness', 'Gym', 'Sport', 'Тренировка', 'Funtopia'], color: '#14b8a6', icon: '🏋️' },
-            'Транспорт': { keywords: ['Econt', 'Speedy', 'Delivery'], color: '#f97316', icon: '🚚' },
+            'Магазини': { keywords: ['Narkoop', 'RPK', 'Magazine', 'Phoenix', 'BMS', 'Kris', 'Fili', 'Slanchevi', 'Nova'], color: '#ec4899', icon: '🛍️' },
+            'Абонаменти': { keywords: ['Claude', 'Netflix', 'Spotify', 'Julius'], color: '#6366f1', icon: '💻' },
+            'Тренировки': { keywords: ['Fitness', 'Gym', 'Sport', 'Funtopia'], color: '#14b8a6', icon: '🏋️' },
+            'Транспорт': { keywords: ['Econt', 'Speedy'], color: '#f97316', icon: '🚚' },
             'Други': { keywords: [], color: '#64748b', icon: '🎯' }
         };
         let logs = [];
@@ -408,9 +721,7 @@
             }
         }
 
-        window.onload = () => {
-            loadData();
-        };
+        window.onload = () => { loadData(); };
 
         function addLog(message, type = 'info') {
             const timestamp = new Date().toLocaleTimeString('bg-BG');
@@ -425,33 +736,21 @@
                 addLog('🔄 Зареждане на данни от Firebase...');
                 
                 const txSnapshot = await db.collection('transactions').orderBy('date', 'desc').get();
-                transactions = txSnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
+                transactions = txSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 
                 const catDoc = await db.collection('settings').doc('categories').get();
-                if (catDoc.exists) {
-                    categories = catDoc.data().categories;
-                }
+                if (catDoc.exists) categories = catDoc.data().categories;
                 
                 addLog(`✅ Заредени ${transactions.length} транзакции`, 'success');
                 showSyncStatus('synced', 'Синхронизирано');
                 renderUI();
                 
                 db.collection('transactions').onSnapshot(snapshot => {
-                    transactions = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
+                    transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     renderUI();
-                    addLog('🔄 Данни обновени в реално време', 'info');
-                }, error => {
-                    addLog('❌ Грешка при синхронизация: ' + error.message, 'error');
                 });
-                
             } catch (error) {
-                addLog('❌ Грешка при зареждане: ' + error.message, 'error');
+                addLog('❌ Грешка: ' + error.message, 'error');
                 showSyncStatus('error', 'Грешка');
             }
         }
@@ -460,10 +759,9 @@
             try {
                 showSyncStatus('syncing', 'Запазване...');
                 await db.collection('transactions').add(transaction);
-                addLog('✅ Транзакция запазена', 'success');
                 showSyncStatus('synced', 'Запазено');
             } catch (error) {
-                addLog('❌ Грешка при запазване: ' + error.message, 'error');
+                addLog('❌ Грешка: ' + error.message, 'error');
                 showSyncStatus('error', 'Грешка');
                 throw error;
             }
@@ -472,7 +770,6 @@
         async function saveCategories() {
             try {
                 await db.collection('settings').doc('categories').set({ categories });
-                addLog('✅ Категории запазени', 'success');
             } catch (error) {
                 addLog('❌ Грешка: ' + error.message, 'error');
             }
@@ -482,9 +779,7 @@
             const desc = description.toUpperCase();
             for (const [name, data] of Object.entries(categories)) {
                 for (const keyword of data.keywords) {
-                    if (desc.includes(keyword.toUpperCase())) {
-                        return name;
-                    }
+                    if (desc.includes(keyword.toUpperCase())) return name;
                 }
             }
             return 'Други';
@@ -494,15 +789,14 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            addLog(`📁 Зареждане на ${file.name}...`);
+            addLog(`📁 ${file.name}...`);
             const reader = new FileReader();
             
             reader.onload = async (e) => {
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                    const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
                     const person = document.getElementById('uploadPerson').value;
                     let added = 0;
@@ -517,22 +811,17 @@
                         let date = new Date();
                         if (completionDateStr) {
                             const parts = completionDateStr.split(' ')[0].split('-');
-                            if (parts.length === 3) {
-                                date = new Date(parts[0], parts[1] - 1, parts[2]);
-                            }
+                            if (parts.length === 3) date = new Date(parts[0], parts[1] - 1, parts[2]);
                         }
 
-                        const transaction = {
+                        await saveTransaction({
                             date: date.toISOString(),
                             description,
                             amount,
                             category: categorizeTransaction(description),
                             person,
-                            manual: false,
                             createdAt: new Date().toISOString()
-                        };
-
-                        await saveTransaction(transaction);
+                        });
                         added++;
                     }
                     
@@ -544,7 +833,6 @@
                     alert(`❌ Грешка: ${error.message}`);
                 }
             };
-            
             reader.readAsArrayBuffer(file);
             event.target.value = '';
         }
@@ -558,11 +846,8 @@
                 return;
             }
 
-            addLog('=== ЗАПОЧВАМ ОБРАБОТКА ===');
-            
             try {
                 const lines = data.trim().split('\n');
-                addLog(`Намерени ${lines.length} реда`);
                 let added = 0;
 
                 for (let i = 1; i < lines.length; i++) {
@@ -573,12 +858,10 @@
                     if (parts.length < 6) continue;
                     
                     const type = parts[0] || '';
+                    if (type.includes('Допълване') || type.includes('Превод')) continue;
+                    
                     const description = parts[4] || '';
-                    const amountStr = parts[5] || '';
-                    
-                    if (type.includes('Допълване') || type.includes('Допълване') || type.includes('Превод') || type.includes('Превод')) continue;
-                    
-                    const amount = Math.abs(parseFloat(amountStr.replace(',', '.')) || 0);
+                    const amount = Math.abs(parseFloat((parts[5] || '').replace(',', '.')) || 0);
                     if (amount === 0) continue;
                     
                     const completionDateStr = parts[3] || parts[2] || '';
@@ -586,132 +869,87 @@
                     
                     if (completionDateStr) {
                         const dateParts = completionDateStr.split(' ')[0].split('-');
-                        if (dateParts.length === 3) {
-                            date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-                        }
+                        if (dateParts.length === 3) date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
                     }
                     
-                    const transaction = {
+                    await saveTransaction({
                         date: date.toISOString(),
                         description,
                         amount,
                         category: categorizeTransaction(description),
                         person,
-                        manual: false,
                         createdAt: new Date().toISOString()
-                    };
-                    
-                    await saveTransaction(transaction);
+                    });
                     added++;
-                    addLog(`✓ ${description}: ${amount} лв`, 'success');
                 }
 
                 if (added === 0) {
-                    addLog('❌ Няма валидни транзакции', 'error');
-                    alert('⚠️ Не намерих транзакции. Провери формата.');
+                    alert('⚠️ Не намерих транзакции.');
                     return;
                 }
                 
-                addLog(`✅ УСПЕХ! Добавени ${added} транзакции`, 'success');
+                addLog(`✅ Добавени ${added} транзакции`, 'success');
                 alert(`✅ Добавени ${added} транзакции за ${person}!`);
                 document.getElementById('pasteData').value = '';
                 toggleUpload();
             } catch (error) {
-                addLog(`❌ ГРЕШКА: ${error.message}`, 'error');
+                addLog(`❌ ${error.message}`, 'error');
                 alert(`❌ Грешка: ${error.message}`);
             }
         }
 
         async function deleteTransaction(id) {
             const tx = transactions.find(t => t.id === id);
-            if (!confirm(`Сигурен ли си, че искаш да изтриеш:\n${tx.description} - ${tx.amount.toFixed(2)} лв?`)) {
-                return;
-            }
+            if (!confirm(`Изтрий:\n${tx.description} - ${tx.amount.toFixed(2)} лв?`)) return;
             
             try {
                 await db.collection('transactions').doc(id).delete();
-                addLog(`🗑️ Изтрита транзакция: ${tx.description}`, 'warning');
+                addLog(`🗑️ Изтрита: ${tx.description}`, 'warning');
             } catch (error) {
-                addLog('❌ Грешка: ' + error.message, 'error');
+                addLog('❌ ' + error.message, 'error');
             }
         }
 
         async function confirmReset() {
-            if (!confirm('⚠️ ВНИМАНИЕ!\n\nЩе изтриеш ВСИЧКИ транзакции и настройки!\n\nТова действие НЕ МОЖЕ да бъде отменено!\n\nСигурен ли си?')) {
-                return;
-            }
-            
-            if (!confirm('Последна проверка!\n\nНаистина ли искаш да изтриеш ВСИЧКО?')) {
-                return;
-            }
+            if (!confirm('⚠️ ВНИМАНИЕ!\n\nИзтриване на ВСИЧКИ данни!\n\nСигурен ли си?')) return;
+            if (!confirm('Последна проверка! Изтриване?')) return;
             
             try {
                 showSyncStatus('syncing', 'Изтриване...');
-                addLog('🗑️ Започвам изтриване на всички данни...', 'warning');
-                
                 const batch = db.batch();
-                const snapshot = await db.collection('transactions').get();
-                snapshot.docs.forEach(doc => {
-                    batch.delete(doc.ref);
-                });
+                (await db.collection('transactions').get()).docs.forEach(doc => batch.delete(doc.ref));
                 await batch.commit();
-                
                 await db.collection('settings').doc('categories').delete();
                 
                 transactions = [];
-                categories = {
-                    'Пазар': { keywords: ['BILLA', 'Kaufland', 'Lidl', 'Fantastico'], color: '#10b981', icon: '🛒' },
-                    'Гориво': { keywords: ['LUKOIL', 'OMV', 'Shell', 'Petrol'], color: '#f59e0b', icon: '⛽' },
-                    'Заведения': { keywords: ['Subway', 'Supa Bar', 'Leksi', 'Markita'], color: '#8b5cf6', icon: '🍽️' },
-                    'Аптека': { keywords: ['SOpharmacy', 'Pharmacy', 'Аптека', 'Apteka'], color: '#ef4444', icon: '💊' },
-                    'Училище': { keywords: ['Uchilishta', 'Maksimum', 'Училище'], color: '#3b82f6', icon: '🏫' },
-                    'Магазини': { keywords: ['Narkoop', 'RPK', 'Magazine'], color: '#ec4899', icon: '🛍️' },
-                    'Абонаменти': { keywords: ['Claude', 'Netflix', 'Spotify'], color: '#6366f1', icon: '💻' },
-                    'Тренировки': { keywords: ['Fitness', 'Gym', 'Sport'], color: '#14b8a6', icon: '🏋️' },
-                    'Други': { keywords: [], color: '#64748b', icon: '🎯' }
-                };
-                
                 renderUI();
                 showSyncStatus('synced', 'Изтрито');
-                addLog('✅ Всички данни изтрити успешно!', 'success');
-                alert('✅ Всички данни изтрити успешно!');
-                
+                alert('✅ Изтрито!');
             } catch (error) {
-                addLog('❌ Грешка при изтриване: ' + error.message, 'error');
+                addLog('❌ ' + error.message, 'error');
                 showSyncStatus('error', 'Грешка');
-                alert('❌ Грешка: ' + error.message);
             }
         }
 
         function exportToGoogleSheets() {
             const filtered = getFilteredTransactions();
-            
             if (filtered.length === 0) {
-                alert('⚠️ Няма транзакции за експорт!');
+                alert('⚠️ Няма транзакции!');
                 return;
             }
             
-            let csvContent = 'Дата,Описание,Сума (лв),Категория,Човек\n';
-            
+            let csv = 'Дата,Описание,Сума (лв),Категория,Човек\n';
             filtered.forEach(tx => {
-                const date = new Date(tx.date).toLocaleDateString('bg-BG');
-                const description = tx.description.replace(/,/g, ';');
-                csvContent += `${date},${description},${tx.amount.toFixed(2)},${tx.category},${tx.person}\n`;
+                csv += `${new Date(tx.date).toLocaleDateString('bg-BG')},${tx.description.replace(/,/g, ';')},${tx.amount.toFixed(2)},${tx.category},${tx.person}\n`;
             });
             
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            
-            link.setAttribute('href', url);
-            link.setAttribute('download', `budget_export_${new Date().toISOString().split('T')[0]}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
+            link.href = URL.createObjectURL(blob);
+            link.download = `budget_${new Date().toISOString().split('T')[0]}.csv`;
             link.click();
-            document.body.removeChild(link);
             
-            addLog(`📊 Експортирани ${filtered.length} транзакции`, 'success');
-            alert(`✅ Експортирани ${filtered.length} транзакции!\n\nОтвори файла в Google Sheets:\n1. Google Sheets → File → Import\n2. Избери файла\n3. Import!`);
+            alert(`✅ Експортирани ${filtered.length} транзакции!`);
         }
 
         function getFilteredTransactions() {
@@ -720,22 +958,16 @@
             const person = document.getElementById('personFilter').value;
 
             return transactions.filter(tx => {
-                const txDate = new Date(tx.date);
-                const monthMatch = month === 'all' || txDate.getMonth() === parseInt(month);
-                const yearMatch = year === 'all' || txDate.getFullYear() === parseInt(year);
-                const personMatch = person === 'all' || tx.person === person;
-                return monthMatch && yearMatch && personMatch;
+                const d = new Date(tx.date);
+                return (month === 'all' || d.getMonth() === parseInt(month)) &&
+                       (year === 'all' || d.getFullYear() === parseInt(year)) &&
+                       (person === 'all' || tx.person === person);
             });
         }
 
         function getCategoryData() {
-            const filtered = getFilteredTransactions();
             const totals = {};
-            
-            filtered.forEach(tx => {
-                totals[tx.category] = (totals[tx.category] || 0) + tx.amount;
-            });
-
+            getFilteredTransactions().forEach(tx => totals[tx.category] = (totals[tx.category] || 0) + tx.amount);
             return Object.entries(totals)
                 .map(([name, value]) => ({
                     name,
@@ -749,11 +981,10 @@
         function renderUI() {
             const filtered = getFilteredTransactions();
             const total = filtered.reduce((sum, tx) => sum + tx.amount, 0);
-            const avg = filtered.length > 0 ? total / filtered.length : 0;
 
             document.getElementById('totalExpenses').textContent = `${total.toFixed(2)} лв`;
             document.getElementById('totalCount').textContent = filtered.length;
-            document.getElementById('avgExpense').textContent = `${avg.toFixed(2)} лв`;
+            document.getElementById('avgExpense').textContent = filtered.length ? `${(total / filtered.length).toFixed(2)} лв` : '0.00 лв';
 
             renderChart();
             renderCategories();
@@ -762,33 +993,32 @@
         }
 
         function renderChart() {
-            const categoryData = getCategoryData();
+            const data = getCategoryData();
             const ctx = document.getElementById('chartCanvas').getContext('2d');
             
             if (chart) chart.destroy();
-
-            if (categoryData.length === 0) {
-                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-                return;
-            }
+            if (data.length === 0) return;
 
             chart = new Chart(ctx, {
                 type: 'pie',
                 data: {
-                    labels: categoryData.map(c => `${c.icon} ${c.name}`),
+                    labels: data.map(c => `${c.icon} ${c.name}`),
                     datasets: [{
-                        data: categoryData.map(c => c.value),
-                        backgroundColor: categoryData.map(c => c.color)
+                        data: data.map(c => c.value),
+                        backgroundColor: data.map(c => c.color),
+                        borderWidth: 0
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
                     plugins: {
-                        legend: { position: 'bottom' },
+                        legend: { 
+                            position: 'bottom',
+                            labels: { padding: 15, font: { size: 13, family: 'Inter' } }
+                        },
                         tooltip: {
                             callbacks: {
-                                label: (context) => `${context.label}: ${context.parsed.toFixed(2)} лв`
+                                label: (ctx) => `${ctx.label}: ${ctx.parsed.toFixed(2)} лв`
                             }
                         }
                     }
@@ -797,213 +1027,165 @@
         }
 
         function renderCategories() {
-            const categoryData = getCategoryData();
-            const total = categoryData.reduce((sum, c) => sum + c.value, 0);
+            const data = getCategoryData();
+            const total = data.reduce((sum, c) => sum + c.value, 0);
             
-            const html = categoryData.map(cat => `
+            document.getElementById('categoriesList').innerHTML = data.map(cat => `
                 <div class="category-item">
                     <div class="flex">
-                        <span style="font-size: 24px;">${cat.icon}</span>
-                        <span style="font-weight: 600;">${cat.name}</span>
+                        <span style="font-size: 28px;">${cat.icon}</span>
+                        <span style="font-weight: 600; font-size: 17px;">${cat.name}</span>
                     </div>
                     <div style="text-align: right;">
-                        <div style="font-weight: bold; font-size: 18px;">${cat.value.toFixed(2)} лв</div>
-                        <div style="font-size: 12px; color: #6b7280;">${total > 0 ? ((cat.value / total) * 100).toFixed(1) : 0}%</div>
+                        <div style="font-weight: 700; font-size: 20px;">${cat.value.toFixed(2)} лв</div>
+                        <div style="font-size: 13px; color: #64748b;">${total ? ((cat.value / total) * 100).toFixed(1) : 0}%</div>
                     </div>
                 </div>
-            `).join('');
-            
-            document.getElementById('categoriesList').innerHTML = html || '<p style="text-align: center; color: #6b7280;">Няма данни</p>';
+            `).join('') || '<p style="text-align: center; color: #94a3b8;">Няма данни</p>';
         }
 
         function renderTransactions() {
             const filtered = getFilteredTransactions().sort((a, b) => new Date(b.date) - new Date(a.date));
             
-            const html = filtered.map(tx => `
+            document.getElementById('transactionsList').innerHTML = filtered.map(tx => `
                 <div class="transaction-item">
                     <div style="flex: 1; min-width: 0;">
-                        <div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis;">${tx.description}</div>
-                        <div style="font-size: 12px; color: #6b7280;">
+                        <div style="font-weight: 600; font-size: 15px;">${tx.description}</div>
+                        <div style="font-size: 13px; color: #64748b;">
                             ${new Date(tx.date).toLocaleDateString('bg-BG')} • ${tx.person}
                         </div>
                     </div>
                     <div class="flex" style="flex-shrink: 0;">
-                        <select onchange="updateCategory('${tx.id}', this.value)" style="width: auto; margin: 0; padding: 8px; font-size: 12px;">
+                        <select onchange="updateCategory('${tx.id}', this.value)" style="width: auto; margin: 0; padding: 10px; font-size: 13px;">
                             ${Object.entries(categories).map(([name, data]) => 
                                 `<option value="${name}" ${tx.category === name ? 'selected' : ''}>${data.icon} ${name}</option>`
                             ).join('')}
                         </select>
-                        <div style="font-weight: bold; color: #dc2626; min-width: 70px; text-align: right;">
+                        <div style="font-weight: 700; color: #dc2626; min-width: 75px; text-align: right; font-size: 16px;">
                             ${tx.amount.toFixed(2)} лв
                         </div>
                         <button class="delete-btn" onclick="deleteTransaction('${tx.id}')">🗑️</button>
                     </div>
                 </div>
-            `).join('');
-            
-            document.getElementById('transactionsList').innerHTML = html || '<p style="text-align: center; color: #6b7280;">Няма транзакции</p>';
+            `).join('') || '<p style="text-align: center; color: #94a3b8; padding: 40px 0;">Няма транзакции</p>';
         }
 
         async function updateCategory(id, newCategory) {
             try {
-                await db.collection('transactions').doc(id).update({
-                    category: newCategory,
-                    manual: true
-                });
-                addLog(`Категория променена на "${newCategory}"`, 'success');
+                await db.collection('transactions').doc(id).update({ category: newCategory, manual: true });
             } catch (error) {
-                addLog('❌ Грешка: ' + error.message, 'error');
+                addLog('❌ ' + error.message, 'error');
             }
         }
 
         function updateFilters() {
             const months = new Set();
             const years = new Set();
-            
             transactions.forEach(tx => {
-                const date = new Date(tx.date);
-                months.add(date.getMonth());
-                years.add(date.getFullYear());
+                const d = new Date(tx.date);
+                months.add(d.getMonth());
+                years.add(d.getFullYear());
             });
 
-            const monthFilter = document.getElementById('monthFilter');
-            const yearFilter = document.getElementById('yearFilter');
-            
-            const currentMonth = monthFilter.value;
-            const currentYear = yearFilter.value;
+            const mf = document.getElementById('monthFilter');
+            const yf = document.getElementById('yearFilter');
+            const cm = mf.value;
+            const cy = yf.value;
 
-            monthFilter.innerHTML = '<option value="all">Всички месеци</option>' +
-                Array.from(months).sort((a, b) => a - b)
-                    .map(m => `<option value="${m}">${monthNames[m]}</option>`).join('');
-            
-            yearFilter.innerHTML = '<option value="all">Всички години</option>' +
-                Array.from(years).sort((a, b) => b - a)
-                    .map(y => `<option value="${y}">${y}</option>`).join('');
+            mf.innerHTML = '<option value="all">Всички месеци</option>' +
+                Array.from(months).sort((a, b) => a - b).map(m => `<option value="${m}">${monthNames[m]}</option>`).join('');
+            yf.innerHTML = '<option value="all">Всички години</option>' +
+                Array.from(years).sort((a, b) => b - a).map(y => `<option value="${y}">${y}</option>`).join('');
 
-            monthFilter.value = currentMonth;
-            yearFilter.value = currentYear;
+            mf.value = cm;
+            yf.value = cy;
         }
 
-        function filterData() {
-            renderUI();
-        }
+        function filterData() { renderUI(); }
 
         async function addCategory() {
             const name = document.getElementById('newCategoryName').value.trim();
-            if (!name) return;
-            
-            if (categories[name]) {
-                alert('Тази категория вече съществува!');
+            if (!name || categories[name]) {
+                alert(categories[name] ? 'Съществува!' : 'Въведи име!');
                 return;
             }
-
             categories[name] = { keywords: [], color: '#64748b', icon: '📌' };
             await saveCategories();
             renderUI();
             renderSettingsUI();
             document.getElementById('newCategoryName').value = '';
-            addLog(`Добавена категория "${name}"`, 'success');
         }
 
         function renderSettingsUI() {
-            const html = Object.entries(categories).map(([name, data]) => `
-                <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+            document.getElementById('categoriesSettings').innerHTML = Object.entries(categories).map(([name, data]) => `
+                <div style="border: 2px solid rgba(102, 126, 234, 0.2); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
                     <div class="flex-between mb-4">
                         <div class="flex">
-                            <span style="font-size: 24px;">${data.icon}</span>
-                            <span style="font-weight: 600;">${name}</span>
+                            <span style="font-size: 28px;">${data.icon}</span>
+                            <span style="font-weight: 600; font-size: 18px;">${name}</span>
                         </div>
-                        ${name !== 'Други' ? `<button class="btn btn-danger" style="padding: 8px 16px; font-size: 14px;" onclick="deleteCategory('${name}')">🗑️</button>` : ''}
+                        ${name !== 'Други' ? `<button class="btn btn-danger" style="padding: 10px 18px; font-size: 13px;" onclick="deleteCategory('${name}')">🗑️</button>` : ''}
                     </div>
-                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Ключови думи:</div>
+                    <div style="font-size: 13px; color: #64748b; margin-bottom: 10px; font-weight: 500;">Ключови думи:</div>
                     <div style="margin-bottom: 12px;">
                         ${data.keywords.map(kw => `
                             <span class="keyword-tag">
-                                ${kw} 
-                                <button onclick="removeKeyword('${name}', '${kw}')" style="border: none; background: none; color: #dc2626; cursor: pointer; margin-left: 4px;">✖</button>
+                                ${kw}
+                                <button onclick="removeKeyword('${name}', '${kw}')" style="border: none; background: none; color: white; cursor: pointer; margin-left: 6px; font-weight: 700;">✖</button>
                             </span>
                         `).join('')}
                     </div>
                     <div class="flex">
-                        <input type="text" id="keyword-${name}" placeholder="Нова ключова дума" style="margin: 0;">
-                        <button class="btn btn-success" style="padding: 8px 16px;" onclick="addKeyword('${name}')">➕</button>
+                        <input type="text" id="keyword-${name}" placeholder="Нова дума" style="margin: 0;">
+                        <button class="btn btn-success" style="padding: 10px 18px;" onclick="addKeyword('${name}')">➕</button>
                     </div>
                 </div>
             `).join('');
-            
-            document.getElementById('categoriesSettings').innerHTML = html;
         }
 
         async function deleteCategory(name) {
-            if (!confirm(`Сигурен ли си, че искаш да изтриеш "${name}"?`)) return;
+            if (!confirm(`Изтрий "${name}"?`)) return;
             
             const batch = db.batch();
             transactions.forEach(tx => {
-                if (tx.category === name) {
-                    const ref = db.collection('transactions').doc(tx.id);
-                    batch.update(ref, { category: 'Други' });
-                }
+                if (tx.category === name) batch.update(db.collection('transactions').doc(tx.id), { category: 'Други' });
             });
             await batch.commit();
-            
             delete categories[name];
             await saveCategories();
             renderUI();
             renderSettingsUI();
-            addLog(`Изтрита категория "${name}"`, 'warning');
         }
 
         async function addKeyword(categoryName) {
             const input = document.getElementById(`keyword-${categoryName}`);
             const keyword = input.value.trim();
+            if (!keyword || categories[categoryName].keywords.includes(keyword)) return;
             
-            if (!keyword) return;
-            
-            if (!categories[categoryName].keywords.includes(keyword)) {
-                categories[categoryName].keywords.push(keyword);
-                await saveCategories();
-                renderSettingsUI();
-                input.value = '';
-                addLog(`Добавена ключова дума "${keyword}" в "${categoryName}"`, 'success');
-            }
+            categories[categoryName].keywords.push(keyword);
+            await saveCategories();
+            renderSettingsUI();
+            input.value = '';
         }
 
         async function removeKeyword(categoryName, keyword) {
             categories[categoryName].keywords = categories[categoryName].keywords.filter(k => k !== keyword);
             await saveCategories();
             renderSettingsUI();
-            addLog(`Премахната ключова дума "${keyword}"`, 'warning');
         }
 
-        function toggleUpload() {
-            document.getElementById('uploadModal').classList.toggle('active');
-        }
-
+        function toggleUpload() { document.getElementById('uploadModal').classList.toggle('active'); }
         function toggleSettings() {
             const modal = document.getElementById('settingsModal');
             const isActive = modal.classList.toggle('active');
             if (isActive) renderSettingsUI();
         }
-
-        function toggleLogs() {
-            document.getElementById('logsModal').classList.toggle('active');
-        }
-
-        function clearLogs() {
-            logs = [];
-            updateLogsUI();
-        }
-
+        function toggleLogs() { document.getElementById('logsModal').classList.toggle('active'); }
+        function clearLogs() { logs = []; updateLogsUI(); }
         function updateLogsUI() {
-            const html = logs.length === 0 
-                ? '<p style="text-align: center; color: #6b7280;">Няма логове</p>'
-                : logs.map(log => `
-                    <div class="log ${log.type}">
-                        [${log.timestamp}] ${log.message}
-                    </div>
-                `).join('');
-            
-            document.getElementById('logsList').innerHTML = html;
+            document.getElementById('logsList').innerHTML = logs.length === 0 
+                ? '<p style="text-align: center; color: #94a3b8;">Няма логове</p>'
+                : logs.map(log => `<div class="log ${log.type}">[${log.timestamp}] ${log.message}</div>`).join('');
         }
     </script>
 </body>
