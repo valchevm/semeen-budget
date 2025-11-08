@@ -6,6 +6,8 @@
     <title>💰 Семеен Бюджет Tracker</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -26,6 +28,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
         }
         h1 { font-size: 32px; color: #1f2937; }
         .btn {
@@ -41,8 +45,10 @@
         .btn-primary:hover { background: #2563eb; }
         .btn-success { background: #10b981; color: white; }
         .btn-success:hover { background: #059669; }
-        .btn-danger { background: #ef4444; color: white; font-size: 14px; padding: 6px 12px; }
+        .btn-danger { background: #ef4444; color: white; }
         .btn-danger:hover { background: #dc2626; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-warning:hover { background: #d97706; }
         .btn-icon {
             background: #f3f4f6;
             padding: 8px;
@@ -148,10 +154,9 @@
             margin: 4px;
             font-size: 12px;
         }
-        .flex { display: flex; gap: 8px; align-items: center; }
+        .flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .flex-between { display: flex; justify-content: space-between; align-items: center; }
         .mb-4 { margin-bottom: 16px; }
-        .mt-4 { margin-top: 16px; }
         .delete-btn {
             background: #ef4444;
             color: white;
@@ -163,25 +168,63 @@
             font-weight: 600;
         }
         .delete-btn:hover { background: #dc2626; }
+        .sync-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 999;
+        }
+        .sync-status.syncing { color: #3b82f6; }
+        .sync-status.synced { color: #10b981; }
+        .sync-status.error { color: #ef4444; }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinning { animation: spin 1s linear infinite; display: inline-block; }
+        .action-btns {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 768px) {
+            .btn { padding: 10px 16px; font-size: 14px; }
+            h1 { font-size: 24px; }
+        }
     </style>
 </head>
 <body>
+    <div id="syncStatus" class="sync-status" style="display: none;">
+        <span id="syncIcon">🔄</span>
+        <span id="syncText">Синхронизация...</span>
+    </div>
+
     <div class="container">
-        <!-- Header -->
         <div class="card">
             <div class="header">
                 <h1>💰 Семеен Бюджет</h1>
                 <div class="flex">
-                    <button class="btn-icon" onclick="toggleLogs()">📋</button>
-                    <button class="btn-icon" onclick="toggleSettings()">⚙️</button>
+                    <button class="btn-icon" onclick="exportToGoogleSheets()" title="Експорт към Google Sheets">📊</button>
+                    <button class="btn-icon" onclick="toggleLogs()" title="Логове">📋</button>
+                    <button class="btn-icon" onclick="toggleSettings()" title="Настройки">⚙️</button>
                 </div>
             </div>
             
-            <button class="btn btn-primary" style="width: 100%; margin-bottom: 16px;" onclick="toggleUpload()">
-                ➕ Добави транзакции
-            </button>
+            <div class="action-btns">
+                <button class="btn btn-primary" style="flex: 1;" onclick="toggleUpload()">
+                    ➕ Добави транзакции
+                </button>
+                <button class="btn btn-danger" onclick="confirmReset()">
+                    🗑️ Reset всичко
+                </button>
+            </div>
 
-            <div class="grid">
+            <div class="grid" style="margin-top: 16px;">
                 <div>
                     <label class="stat-label">Месец</label>
                     <select id="monthFilter" onchange="filterData()">
@@ -205,7 +248,6 @@
             </div>
         </div>
 
-        <!-- Stats -->
         <div class="grid">
             <div class="stat-card red">
                 <div class="stat-label">Общо разходи</div>
@@ -221,19 +263,16 @@
             </div>
         </div>
 
-        <!-- Chart -->
         <div class="card">
             <h2 style="margin-bottom: 16px;">📊 Разпределение по категории</h2>
             <canvas id="chartCanvas"></canvas>
         </div>
 
-        <!-- Categories -->
         <div class="card">
             <h2 style="margin-bottom: 16px;">Детайли по категории</h2>
             <div id="categoriesList"></div>
         </div>
 
-        <!-- Transactions -->
         <div class="card">
             <h2 style="margin-bottom: 16px;">📝 Всички транзакции</h2>
             <div id="transactionsList" style="max-height: 400px; overflow-y: auto;"></div>
@@ -286,7 +325,7 @@
             <div style="background: #eff6ff; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
                 <label class="stat-label">Добави нова категория:</label>
                 <div class="flex">
-                    <input type="text" id="newCategoryName" placeholder="Име на категория">
+                    <input type="text" id="newCategoryName" placeholder="Име на категория" style="margin: 0;">
                     <button class="btn btn-primary" onclick="addCategory()">➕</button>
                 </div>
             </div>
@@ -310,16 +349,36 @@
     </div>
 
     <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8XDx_eeo8cS3-AbR_KSstY97w5mZxdJA",
+            authDomain: "semeen-budget.firebaseapp.com",
+            projectId: "semeen-budget",
+            storageBucket: "semeen-budget.firebasestorage.app",
+            messagingSenderId: "677872905069",
+            appId: "1:677872905069:web:3d38d8dcf10fa389ba8864"
+        };
+
+        let db;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            console.log('✅ Firebase инициализиран успешно');
+        } catch (error) {
+            console.error('❌ Firebase грешка:', error);
+            alert('⚠️ Грешка при свързване с Firebase: ' + error.message);
+        }
+
         let transactions = [];
         let categories = {
             'Пазар': { keywords: ['BILLA', 'Kaufland', 'Lidl', 'Fantastico'], color: '#10b981', icon: '🛒' },
             'Гориво': { keywords: ['LUKOIL', 'OMV', 'Shell', 'Petrol'], color: '#f59e0b', icon: '⛽' },
-            'Заведения': { keywords: ['Subway', 'Supa Bar', 'Leksi', 'Markita'], color: '#8b5cf6', icon: '🍽️' },
-            'Аптека': { keywords: ['SOpharmacy', 'Pharmacy', 'Аптека'], color: '#ef4444', icon: '💊' },
+            'Заведения': { keywords: ['Subway', 'Supa Bar', 'Leksi', 'Markita', 'McDonald', 'Costa'], color: '#8b5cf6', icon: '🍽️' },
+            'Аптека': { keywords: ['SOpharmacy', 'Pharmacy', 'Аптека', 'Apteka', 'Zdrave'], color: '#ef4444', icon: '💊' },
             'Училище': { keywords: ['Uchilishta', 'Maksimum', 'Училище'], color: '#3b82f6', icon: '🏫' },
-            'Магазини': { keywords: ['Narkoop', 'RPK', 'Magazine'], color: '#ec4899', icon: '🛍️' },
-            'Абонаменти': { keywords: ['Claude', 'Netflix', 'Spotify', 'Subscription'], color: '#6366f1', icon: '💻' },
-            'Тренировки': { keywords: ['Fitness', 'Gym', 'Sport', 'Тренировка'], color: '#14b8a6', icon: '🏋️' },
+            'Магазини': { keywords: ['Narkoop', 'RPK', 'Magazine', 'Phoenix', 'BMS', 'Kris'], color: '#ec4899', icon: '🛍️' },
+            'Абонаменти': { keywords: ['Claude', 'Netflix', 'Spotify', 'Subscription', 'Julius'], color: '#6366f1', icon: '💻' },
+            'Тренировки': { keywords: ['Fitness', 'Gym', 'Sport', 'Тренировка', 'Funtopia'], color: '#14b8a6', icon: '🏋️' },
+            'Транспорт': { keywords: ['Econt', 'Speedy', 'Delivery'], color: '#f97316', icon: '🚚' },
             'Други': { keywords: [], color: '#64748b', icon: '🎯' }
         };
         let logs = [];
@@ -327,9 +386,30 @@
 
         const monthNames = ['Януари', 'Февруари', 'Март', 'Април', 'Май', 'Юни', 'Юли', 'Август', 'Септември', 'Октомври', 'Ноември', 'Декември'];
 
+        function showSyncStatus(status, text) {
+            const syncDiv = document.getElementById('syncStatus');
+            const syncIcon = document.getElementById('syncIcon');
+            const syncText = document.getElementById('syncText');
+            
+            syncDiv.style.display = 'block';
+            syncDiv.className = 'sync-status ' + status;
+            syncText.textContent = text;
+            
+            if (status === 'syncing') {
+                syncIcon.textContent = '🔄';
+                syncIcon.classList.add('spinning');
+            } else if (status === 'synced') {
+                syncIcon.textContent = '✅';
+                syncIcon.classList.remove('spinning');
+                setTimeout(() => syncDiv.style.display = 'none', 2000);
+            } else if (status === 'error') {
+                syncIcon.textContent = '❌';
+                syncIcon.classList.remove('spinning');
+            }
+        }
+
         window.onload = () => {
             loadData();
-            renderUI();
         };
 
         function addLog(message, type = 'info') {
@@ -339,21 +419,63 @@
             updateLogsUI();
         }
 
-        function loadData() {
-            const saved = localStorage.getItem('budget-data');
-            if (saved) {
-                const data = JSON.parse(saved);
-                transactions = data.transactions || [];
-                categories = data.categories || categories;
-                addLog(`Заредени ${transactions.length} транзакции`, 'success');
-            } else {
-                addLog('Започвам с празна база данни');
+        async function loadData() {
+            try {
+                showSyncStatus('syncing', 'Зареждане...');
+                addLog('🔄 Зареждане на данни от Firebase...');
+                
+                const txSnapshot = await db.collection('transactions').orderBy('date', 'desc').get();
+                transactions = txSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                const catDoc = await db.collection('settings').doc('categories').get();
+                if (catDoc.exists) {
+                    categories = catDoc.data().categories;
+                }
+                
+                addLog(`✅ Заредени ${transactions.length} транзакции`, 'success');
+                showSyncStatus('synced', 'Синхронизирано');
+                renderUI();
+                
+                db.collection('transactions').onSnapshot(snapshot => {
+                    transactions = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    renderUI();
+                    addLog('🔄 Данни обновени в реално време', 'info');
+                }, error => {
+                    addLog('❌ Грешка при синхронизация: ' + error.message, 'error');
+                });
+                
+            } catch (error) {
+                addLog('❌ Грешка при зареждане: ' + error.message, 'error');
+                showSyncStatus('error', 'Грешка');
             }
         }
 
-        function saveData() {
-            localStorage.setItem('budget-data', JSON.stringify({ transactions, categories }));
-            addLog('Данни запазени', 'success');
+        async function saveTransaction(transaction) {
+            try {
+                showSyncStatus('syncing', 'Запазване...');
+                await db.collection('transactions').add(transaction);
+                addLog('✅ Транзакция запазена', 'success');
+                showSyncStatus('synced', 'Запазено');
+            } catch (error) {
+                addLog('❌ Грешка при запазване: ' + error.message, 'error');
+                showSyncStatus('error', 'Грешка');
+                throw error;
+            }
+        }
+
+        async function saveCategories() {
+            try {
+                await db.collection('settings').doc('categories').set({ categories });
+                addLog('✅ Категории запазени', 'success');
+            } catch (error) {
+                addLog('❌ Грешка: ' + error.message, 'error');
+            }
         }
 
         function categorizeTransaction(description) {
@@ -372,10 +494,10 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            addLog(`Зареждане на ${file.name}...`);
+            addLog(`📁 Зареждане на ${file.name}...`);
             const reader = new FileReader();
             
-            reader.onload = (e) => {
+            reader.onload = async (e) => {
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
@@ -383,38 +505,39 @@
                     const jsonData = XLSX.utils.sheet_to_json(firstSheet);
 
                     const person = document.getElementById('uploadPerson').value;
-                    const newTransactions = jsonData
-                        .filter(row => row['Сума'] && parseFloat(row['Сума']) < 0)
-                        .map((row, index) => {
-                            const description = row['Описание'] || '';
-                            const amount = Math.abs(parseFloat(row['Сума']) || 0);
-                            const dateStr = row['Начална дата'] || row['Дата на завършване'] || '';
-                            
-                            let date = new Date();
-                            if (dateStr) {
-                                const parts = dateStr.split(' ')[0].split('-');
-                                if (parts.length === 3) {
-                                    date = new Date(parts[0], parts[1] - 1, parts[2]);
-                                }
+                    let added = 0;
+
+                    for (const row of jsonData) {
+                        if (!row['Сума'] || parseFloat(row['Сума']) >= 0) continue;
+                        
+                        const description = row['Описание'] || '';
+                        const amount = Math.abs(parseFloat(row['Сума']) || 0);
+                        const completionDateStr = row['Дата на завършване'] || row['Начална дата'] || '';
+                        
+                        let date = new Date();
+                        if (completionDateStr) {
+                            const parts = completionDateStr.split(' ')[0].split('-');
+                            if (parts.length === 3) {
+                                date = new Date(parts[0], parts[1] - 1, parts[2]);
                             }
+                        }
 
-                            return {
-                                id: `${Date.now()}-${index}-${Math.random()}`,
-                                date: date.toISOString(),
-                                description,
-                                amount,
-                                category: categorizeTransaction(description),
-                                person,
-                                manual: false
-                            };
-                        });
+                        const transaction = {
+                            date: date.toISOString(),
+                            description,
+                            amount,
+                            category: categorizeTransaction(description),
+                            person,
+                            manual: false,
+                            createdAt: new Date().toISOString()
+                        };
 
-                    transactions.push(...newTransactions);
-                    saveData();
-                    renderUI();
+                        await saveTransaction(transaction);
+                        added++;
+                    }
                     
-                    addLog(`✅ Качени ${newTransactions.length} транзакции`, 'success');
-                    alert(`✅ Качени ${newTransactions.length} транзакции!`);
+                    addLog(`✅ Качени ${added} транзакции`, 'success');
+                    alert(`✅ Качени ${added} транзакции!`);
                     toggleUpload();
                 } catch (error) {
                     addLog(`❌ ${error.message}`, 'error');
@@ -426,7 +549,7 @@
             event.target.value = '';
         }
 
-        function handlePasteUpload() {
+        async function handlePasteUpload() {
             const data = document.getElementById('pasteData').value;
             const person = document.getElementById('uploadPerson').value;
             
@@ -440,7 +563,7 @@
             try {
                 const lines = data.trim().split('\n');
                 addLog(`Намерени ${lines.length} реда`);
-                const newTransactions = [];
+                let added = 0;
 
                 for (let i = 1; i < lines.length; i++) {
                     const line = lines[i].trim();
@@ -453,46 +576,44 @@
                     const description = parts[4] || '';
                     const amountStr = parts[5] || '';
                     
-                    if (type.includes('Допълване') || type.includes('Превод')) continue;
+                    if (type.includes('Допълване') || type.includes('Допълване') || type.includes('Превод') || type.includes('Превод')) continue;
                     
                     const amount = Math.abs(parseFloat(amountStr.replace(',', '.')) || 0);
                     if (amount === 0) continue;
                     
-                    const dateStr = parts[2] || '';
+                    const completionDateStr = parts[3] || parts[2] || '';
                     let date = new Date();
                     
-                    if (dateStr) {
-                        const dateParts = dateStr.split(' ')[0].split('-');
+                    if (completionDateStr) {
+                        const dateParts = completionDateStr.split(' ')[0].split('-');
                         if (dateParts.length === 3) {
                             date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
                         }
                     }
                     
-                    newTransactions.push({
-                        id: `${Date.now()}-${i}-${Math.random()}`,
+                    const transaction = {
                         date: date.toISOString(),
                         description,
                         amount,
                         category: categorizeTransaction(description),
                         person,
-                        manual: false
-                    });
+                        manual: false,
+                        createdAt: new Date().toISOString()
+                    };
                     
+                    await saveTransaction(transaction);
+                    added++;
                     addLog(`✓ ${description}: ${amount} лв`, 'success');
                 }
 
-                if (newTransactions.length === 0) {
+                if (added === 0) {
                     addLog('❌ Няма валидни транзакции', 'error');
                     alert('⚠️ Не намерих транзакции. Провери формата.');
                     return;
                 }
-
-                transactions.push(...newTransactions);
-                saveData();
-                renderUI();
                 
-                addLog(`✅ УСПЕХ! Добавени ${newTransactions.length} транзакции`, 'success');
-                alert(`✅ Добавени ${newTransactions.length} транзакции за ${person}!`);
+                addLog(`✅ УСПЕХ! Добавени ${added} транзакции`, 'success');
+                alert(`✅ Добавени ${added} транзакции за ${person}!`);
                 document.getElementById('pasteData').value = '';
                 toggleUpload();
             } catch (error) {
@@ -501,16 +622,96 @@
             }
         }
 
-        function deleteTransaction(id) {
+        async function deleteTransaction(id) {
             const tx = transactions.find(t => t.id === id);
             if (!confirm(`Сигурен ли си, че искаш да изтриеш:\n${tx.description} - ${tx.amount.toFixed(2)} лв?`)) {
                 return;
             }
             
-            transactions = transactions.filter(t => t.id !== id);
-            saveData();
-            renderUI();
-            addLog(`🗑️ Изтрита транзакция: ${tx.description}`, 'warning');
+            try {
+                await db.collection('transactions').doc(id).delete();
+                addLog(`🗑️ Изтрита транзакция: ${tx.description}`, 'warning');
+            } catch (error) {
+                addLog('❌ Грешка: ' + error.message, 'error');
+            }
+        }
+
+        async function confirmReset() {
+            if (!confirm('⚠️ ВНИМАНИЕ!\n\nЩе изтриеш ВСИЧКИ транзакции и настройки!\n\nТова действие НЕ МОЖЕ да бъде отменено!\n\nСигурен ли си?')) {
+                return;
+            }
+            
+            if (!confirm('Последна проверка!\n\nНаистина ли искаш да изтриеш ВСИЧКО?')) {
+                return;
+            }
+            
+            try {
+                showSyncStatus('syncing', 'Изтриване...');
+                addLog('🗑️ Започвам изтриване на всички данни...', 'warning');
+                
+                const batch = db.batch();
+                const snapshot = await db.collection('transactions').get();
+                snapshot.docs.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                await batch.commit();
+                
+                await db.collection('settings').doc('categories').delete();
+                
+                transactions = [];
+                categories = {
+                    'Пазар': { keywords: ['BILLA', 'Kaufland', 'Lidl', 'Fantastico'], color: '#10b981', icon: '🛒' },
+                    'Гориво': { keywords: ['LUKOIL', 'OMV', 'Shell', 'Petrol'], color: '#f59e0b', icon: '⛽' },
+                    'Заведения': { keywords: ['Subway', 'Supa Bar', 'Leksi', 'Markita'], color: '#8b5cf6', icon: '🍽️' },
+                    'Аптека': { keywords: ['SOpharmacy', 'Pharmacy', 'Аптека', 'Apteka'], color: '#ef4444', icon: '💊' },
+                    'Училище': { keywords: ['Uchilishta', 'Maksimum', 'Училище'], color: '#3b82f6', icon: '🏫' },
+                    'Магазини': { keywords: ['Narkoop', 'RPK', 'Magazine'], color: '#ec4899', icon: '🛍️' },
+                    'Абонаменти': { keywords: ['Claude', 'Netflix', 'Spotify'], color: '#6366f1', icon: '💻' },
+                    'Тренировки': { keywords: ['Fitness', 'Gym', 'Sport'], color: '#14b8a6', icon: '🏋️' },
+                    'Други': { keywords: [], color: '#64748b', icon: '🎯' }
+                };
+                
+                renderUI();
+                showSyncStatus('synced', 'Изтрито');
+                addLog('✅ Всички данни изтрити успешно!', 'success');
+                alert('✅ Всички данни изтрити успешно!');
+                
+            } catch (error) {
+                addLog('❌ Грешка при изтриване: ' + error.message, 'error');
+                showSyncStatus('error', 'Грешка');
+                alert('❌ Грешка: ' + error.message);
+            }
+        }
+
+        function exportToGoogleSheets() {
+            const filtered = getFilteredTransactions();
+            
+            if (filtered.length === 0) {
+                alert('⚠️ Няма транзакции за експорт!');
+                return;
+            }
+            
+            let csvContent = 'Дата,Описание,Сума (лв),Категория,Човек\n';
+            
+            filtered.forEach(tx => {
+                const date = new Date(tx.date).toLocaleDateString('bg-BG');
+                const description = tx.description.replace(/,/g, ';');
+                csvContent += `${date},${description},${tx.amount.toFixed(2)},${tx.category},${tx.person}\n`;
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `budget_export_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            addLog(`📊 Експортирани ${filtered.length} транзакции`, 'success');
+            alert(`✅ Експортирани ${filtered.length} транзакции!\n\nОтвори файла в Google Sheets:\n1. Google Sheets → File → Import\n2. Избери файла\n3. Import!`);
         }
 
         function getFilteredTransactions() {
@@ -632,7 +833,7 @@
                                 `<option value="${name}" ${tx.category === name ? 'selected' : ''}>${data.icon} ${name}</option>`
                             ).join('')}
                         </select>
-                        <div style="font-weight: bold; color: #dc2626; min-width: 80px; text-align: right;">
+                        <div style="font-weight: bold; color: #dc2626; min-width: 70px; text-align: right;">
                             ${tx.amount.toFixed(2)} лв
                         </div>
                         <button class="delete-btn" onclick="deleteTransaction('${tx.id}')">🗑️</button>
@@ -643,14 +844,15 @@
             document.getElementById('transactionsList').innerHTML = html || '<p style="text-align: center; color: #6b7280;">Няма транзакции</p>';
         }
 
-        function updateCategory(id, newCategory) {
-            const tx = transactions.find(t => t.id === id);
-            if (tx) {
-                tx.category = newCategory;
-                tx.manual = true;
-                saveData();
-                renderUI();
+        async function updateCategory(id, newCategory) {
+            try {
+                await db.collection('transactions').doc(id).update({
+                    category: newCategory,
+                    manual: true
+                });
                 addLog(`Категория променена на "${newCategory}"`, 'success');
+            } catch (error) {
+                addLog('❌ Грешка: ' + error.message, 'error');
             }
         }
 
@@ -686,7 +888,7 @@
             renderUI();
         }
 
-        function addCategory() {
+        async function addCategory() {
             const name = document.getElementById('newCategoryName').value.trim();
             if (!name) return;
             
@@ -696,7 +898,7 @@
             }
 
             categories[name] = { keywords: [], color: '#64748b', icon: '📌' };
-            saveData();
+            await saveCategories();
             renderUI();
             renderSettingsUI();
             document.getElementById('newCategoryName').value = '';
@@ -732,21 +934,26 @@
             document.getElementById('categoriesSettings').innerHTML = html;
         }
 
-        function deleteCategory(name) {
+        async function deleteCategory(name) {
             if (!confirm(`Сигурен ли си, че искаш да изтриеш "${name}"?`)) return;
             
+            const batch = db.batch();
             transactions.forEach(tx => {
-                if (tx.category === name) tx.category = 'Други';
+                if (tx.category === name) {
+                    const ref = db.collection('transactions').doc(tx.id);
+                    batch.update(ref, { category: 'Други' });
+                }
             });
+            await batch.commit();
             
             delete categories[name];
-            saveData();
+            await saveCategories();
             renderUI();
             renderSettingsUI();
             addLog(`Изтрита категория "${name}"`, 'warning');
         }
 
-        function addKeyword(categoryName) {
+        async function addKeyword(categoryName) {
             const input = document.getElementById(`keyword-${categoryName}`);
             const keyword = input.value.trim();
             
@@ -754,16 +961,16 @@
             
             if (!categories[categoryName].keywords.includes(keyword)) {
                 categories[categoryName].keywords.push(keyword);
-                saveData();
+                await saveCategories();
                 renderSettingsUI();
                 input.value = '';
                 addLog(`Добавена ключова дума "${keyword}" в "${categoryName}"`, 'success');
             }
         }
 
-        function removeKeyword(categoryName, keyword) {
+        async function removeKeyword(categoryName, keyword) {
             categories[categoryName].keywords = categories[categoryName].keywords.filter(k => k !== keyword);
-            saveData();
+            await saveCategories();
             renderSettingsUI();
             addLog(`Премахната ключова дума "${keyword}"`, 'warning');
         }
