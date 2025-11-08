@@ -509,6 +509,7 @@
             <div class="header">
                 <h1>💰 Семеен Бюджет</h1>
                 <div class="flex">
+                    <button class="btn-icon" onclick="showInstallInstructions()" title="Свали приложението">📲</button>
                     <button class="btn-icon" onclick="exportToGoogleSheets()" title="Експорт към Google Sheets">📊</button>
                     <button class="btn-icon" onclick="toggleLogs()" title="Логове">📋</button>
                     <button class="btn-icon" onclick="toggleSettings()" title="Настройки">⚙️</button>
@@ -643,6 +644,57 @@
                 </div>
             </div>
             <div id="logsList" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="installModal">
+        <div class="modal-content">
+            <div class="flex-between mb-4">
+                <h2 style="margin: 0;">📲 Свали приложението</h2>
+                <button class="btn-icon" onclick="toggleInstallModal()">✖️</button>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 24px;">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZ0dyYWRpZW50IiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMWUzYThhO3N0b3Atb3BhY2l0eToxIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojM2I4MmY2O3N0b3Atb3BhY2l0eToxIi8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9IndhbGxldEdyYWRpZW50IiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojNjBhNWZhO3N0b3Atb3BhY2l0eToxIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojM2I4MmY2O3N0b3Atb3BhY2l0eToxIi8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImNvaW5HcmFkaWVudCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2ZiYmYyNDtzdG9wLW9wYWNpdHk6MSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6I2Y1OWUwYjtzdG9wLW9wYWNpdHk6MSIvPjwvbGluZWFyR3JhZGllbnQ+PGZpbHRlciBpZD0ic2hhZG93Ij48ZmVEcm9wU2hhZG93IGR4PSIwIiBkeT0iNCIgc3RkRGV2aWF0aW9uPSI4IiBmbG9vZC1vcGFjaXR5PSIwLjMiLz48L2ZpbHRlcj48L2RlZnM+PHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMTAiIGZpbGw9InVybCgjYmdHcmFkaWVudCkiLz48ZyBmaWx0ZXI9InVybCgjc2hhZG93KSI+PHJlY3QgeD0iODAiIHk9IjE4MCIgd2lkdGg9IjM1MiIgaGVpZ2h0PSIyMjAiIHJ4PSIyNCIgZmlsbD0idXJsKCN3YWxsZXRHcmFkaWVudCkiLz48cGF0aCBkPSJNIDgwIDIwMCBMIDgwIDE4MCBRIDgwIDE2MCAxMDAgMTYwIEwgNDEyIDE2MCBRIDQzMiAxNjAgNDMyIDE4MCBMIDQ3MiAyMDAgWiIgZmlsbD0iIzI1NjNlYiIgb3BhY2l0eT0iMC44Ii8+PHJlY3QgeD0iMTAwIiB5PSIyNDAiIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIiIHJ4PSI2IiBmaWxsPSIjMWU0MGFmIiBvcGFjaXR5PSIwLjQiLz48cmVjdCB4PSIxMDAiIHk9IjI3MCIgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxMiIgcng9IjYiIGZpbGw9IiMxZTQwYWYiIG9wYWNpdHk9IjAuNCIvPjxyZWN0IHg9IjEwMCIgeT0iMzAwIiB3aWR0aD0iOTAiIGhlaWdodD0iMTIiIHJ4PSI2IiBmaWxsPSIjMWU0MGFmIiBvcGFjaXR5PSIwLjQiLz48cmVjdCB4PSIzMDAiIHk9IjI0MCIgd2lkdGg9IjExMiIgaGVpZ2h0PSI4MCIgcng9IjgiIGZpbGw9IiMxZTQwYWYiIG9wYWNpdHk9IjAuMyIvPjwvZz48ZyBmaWx0ZXI9InVybCgjc2hhZG93KSI+PGNpcmNsZSBjeD0iMzYwIiBjeT0iMzIwIiByPSI4MCIgZmlsbD0idXJsKCNjb2luR3JhZGllbnQpIi8+PGNpcmNsZSBjeD0iMzYwIiBjeT0iMzIwIiByPSI3MiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZjU5ZTBiIiBzdHJva2Utd2lkdGg9IjMiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzNjAsIDMyMCkiPjxyZWN0IHg9Ii04IiB5PSItNTAiIHdpZHRoPSI2IiBoZWlnaHQ9IjEwMCIgcng9IjMiIGZpbGw9IiNmZmYiLz48cmVjdCB4PSIyIiB5PSItNTAiIHdpZHRoPSI2IiBoZWlnaHQ9IjEwMCIgcng9IjMiIGZpbGw9IiNmZmYiLz48cGF0aCBkPSJNIC0xNSAtMzUgTCAxNSAtMzUgUSAzNSAtMzUgMzUgLTE1IFEgMzUgMCAyMCAwIFEgMzUgMCAzNSAyMCBRIDM1IDQwIDE1IDQwIEwgLTE1IDQwIFoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSI4IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PGxpbmUgeDE9Ii0xNSIgeTE9IjAiIHgyPSIyMCIgeTI9IjAiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSI4Ii8+PGxpbmUgeDE9Ii01IiB5MT0iLTQ1IiB4Mj0iLTUiIHkyPSItNTUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48bGluZSB4MT0iNSIgeTE9Ii00NSIgeDI9IjUiIHkyPSItNTUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48bGluZSB4MT0iLTUiIHkxPSI0NSIgeDI9Ii01IiB5Mj0iNTUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48bGluZSB4MT0iNSIgeTE9IjQ1IiB4Mj0iNSIgeTI9IjU1IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjxlbGxpcHNlIGN4PSIzNDAiIGN5PSIzMDAiIHJ4PSIyNSIgcnk9IjE1IiBmaWxsPSIjZmVmM2M3IiBvcGFjaXR5PSIwLjQiLz48L2c+PGNpcmNsZSBjeD0iMTQwIiBjeT0iMTQwIiByPSI4IiBmaWxsPSIjNjBhNWZhIiBvcGFjaXR5PSIwLjMiLz48Y2lyY2xlIGN4PSIzODAiIGN5PSIxNTAiIHI9IjYiIGZpbGw9IiM2MGE1ZmEiIG9wYWNpdHk9IjAuMyIvPjxjaXJjbGUgY3g9IjQyMCIgY3k9IjQyMCIgcj0iMTAiIGZpbGw9IiM2MGE1ZmEiIG9wYWNpdHk9IjAuMyIvPjwvc3ZnPg==" 
+                     style="width: 128px; height: 128px; border-radius: 28px; box-shadow: 0 8px 24px rgba(0,0,0,0.2);" 
+                     alt="App Icon">
+                <div style="margin-top: 16px; font-size: 20px; font-weight: 700; color: #1e293b;">Семеен Бюджет</div>
+                <div style="font-size: 14px; color: #64748b;">С хубавата икона на телефона ти!</div>
+            </div>
+
+            <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="font-weight: 600; font-size: 16px; margin-bottom: 12px; color: #1e293b;">📱 За Android (Chrome):</div>
+                <ol style="margin: 0; padding-left: 24px; color: #475569; line-height: 1.8;">
+                    <li>Натисни <strong>трите точки (⋮)</strong> горе вдясно в Chrome</li>
+                    <li>Избери <strong>"Add to Home screen"</strong></li>
+                    <li>Потвърди името</li>
+                    <li>Натисни <strong>"Add"</strong></li>
+                    <li style="color: #10b981; font-weight: 600;">✅ Готово! Иконата е на Home Screen!</li>
+                </ol>
+            </div>
+
+            <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="font-weight: 600; font-size: 16px; margin-bottom: 12px; color: #1e293b;">🍎 За iPhone/iPad (Safari):</div>
+                <ol style="margin: 0; padding-left: 24px; color: #475569; line-height: 1.8;">
+                    <li>Натисни бутона <strong>Share (□↑)</strong> долу в центъра</li>
+                    <li>Scroll надолу и избери <strong>"Add to Home Screen"</strong></li>
+                    <li>Потвърди името</li>
+                    <li>Натисни <strong>"Add"</strong> горе вдясно</li>
+                    <li style="color: #10b981; font-weight: 600;">✅ Готово! Иконата е на Home Screen!</li>
+                </ol>
+            </div>
+
+            <div style="background: #fef3c7; padding: 16px; border-radius: 12px; border-left: 4px solid #f59e0b;">
+                <div style="font-weight: 600; color: #92400e; margin-bottom: 8px;">⚠️ Важно:</div>
+                <div style="font-size: 14px; color: #78350f; line-height: 1.6;">
+                    За да видиш хубавата икона, <strong>НЕ сваляй файла</strong> (Download)! 
+                    Вместо това използвай <strong>"Add to Home Screen"</strong> от менюто на браузъра!
+                </div>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="toggleInstallModal()">
+                Разбрах! 👍
+            </button>
         </div>
     </div>
 
@@ -1186,6 +1238,11 @@
             if (isActive) renderSettingsUI();
         }
         function toggleLogs() { document.getElementById('logsModal').classList.toggle('active'); }
+        function toggleInstallModal() { document.getElementById('installModal').classList.toggle('active'); }
+        function showInstallInstructions() { 
+            toggleInstallModal();
+            addLog('Показани инструкции за инсталация', 'info');
+        }
         function clearLogs() { logs = []; updateLogsUI(); }
         function updateLogsUI() {
             document.getElementById('logsList').innerHTML = logs.length === 0 
