@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background Gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="walletGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="coinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" rx="110" fill="url(#bgGradient)"/>
+  
+  <!-- Wallet Body -->
+  <g filter="url(#shadow)">
+    <!-- Main Wallet -->
+    <rect x="80" y="180" width="352" height="220" rx="24" fill="url(#walletGradient)"/>
+    
+    <!-- Wallet Flap -->
+    <path d="M 80 200 L 80 180 Q 80 160 100 160 L 412 160 Q 432 160 432 180 L 432 200 Z" 
+          fill="#2563eb" opacity="0.8"/>
+    
+    <!-- Wallet Details -->
+    <rect x="100" y="240" width="120" height="12" rx="6" fill="#1e40af" opacity="0.4"/>
+    <rect x="100" y="270" width="180" height="12" rx="6" fill="#1e40af" opacity="0.4"/>
+    <rect x="100" y="300" width="90" height="12" rx="6" fill="#1e40af" opacity="0.4"/>
+    
+    <!-- Card Slot -->
+    <rect x="300" y="240" width="112" height="80" rx="8" fill="#1e40af" opacity="0.3"/>
+  </g>
+  
+  <!-- Bitcoin Coin -->
+  <g filter="url(#shadow)">
+    <!-- Coin Circle -->
+    <circle cx="360" cy="320" r="80" fill="url(#coinGradient)"/>
+    <circle cx="360" cy="320" r="72" fill="none" stroke="#f59e0b" stroke-width="3"/>
+    
+    <!-- Bitcoin Symbol ₿ -->
+    <g transform="translate(360, 320)">
+      <!-- Vertical lines of ₿ -->
+      <rect x="-8" y="-50" width="6" height="100" rx="3" fill="#fff"/>
+      <rect x="2" y="-50" width="6" height="100" rx="3" fill="#fff"/>
+      
+      <!-- B shape -->
+      <path d="M -15 -35 L 15 -35 Q 35 -35 35 -15 Q 35 0 20 0 Q 35 0 35 20 Q 35 40 15 40 L -15 40 Z" 
+            fill="none" stroke="#fff" stroke-width="8" stroke-linejoin="round"/>
+      
+      <!-- Middle line of B -->
+      <line x1="-15" y1="0" x2="20" y2="0" stroke="#fff" stroke-width="8"/>
+      
+      <!-- Top and bottom horizontal lines -->
+      <line x1="-5" y1="-45" x2="-5" y2="-55" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+      <line x1="5" y1="-45" x2="5" y2="-55" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+      <line x1="-5" y1="45" x2="-5" y2="55" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+      <line x1="5" y1="45" x2="5" y2="55" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+    </g>
+    
+    <!-- Coin Shine Effect -->
+    <ellipse cx="340" cy="300" rx="25" ry="15" fill="#fef3c7" opacity="0.4"/>
+  </g>
+  
+  <!-- Decorative Elements -->
+  <circle cx="140" cy="140" r="8" fill="#60a5fa" opacity="0.3"/>
+  <circle cx="380" cy="150" r="6" fill="#60a5fa" opacity="0.3"/>
+  <circle cx="420" cy="420" r="10" fill="#60a5fa" opacity="0.3"/>
+</svg>
